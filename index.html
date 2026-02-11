@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>高一寒假每日计划打卡</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* 基础样式（保留之前的高级UI样式） */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #7209b7;
+            --success-color: #38b000;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        html {
+            font-size: 16px;
+            @media (max-width: 768px) {
+                font-size: 14px;
+            }
+            @media (max-width: 480px) {
+                font-size: 12px;
+            }
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4eaf5 100%);
+            min-height: 100vh;
+            padding: 1rem;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 100%;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* 新增：功能切换按钮 */
+        .func-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .func-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--bg-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .func-btn.active {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+
+        /* 日期选择器 */
+        .day-selector {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            scrollbar-width: none;
+        }
+
+        .day-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .day-btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: var(--radius-sm);
+            background-color: var(--bg-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .day-btn.active {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            color: white;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        /* 任务板块 */
+        .task-section {
+            margin-bottom: 1.5rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e8f0fe;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: "";
+            display: inline-block;
+            width: 0.4rem;
+            height: 1.2rem;
+            background: linear-gradient(180deg, var(--primary-color), var(--primary-light));
+            border-radius: 4px;
+            margin-right: 0.5rem;
+        }
+
+        /* 任务列表 */
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            background-color: white;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            gap: 1rem;
+        }
+
+        .task-item.completed {
+            background-color: #f0fdf4;
+            border-color: #bbf7d0;
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .task-time {
+            min-width: 5rem;
+            width: 6rem;
+            font-weight: 500;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+        }
+
+        .task-content {
+            flex: 1;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        .task-check {
+            width: 1.8rem;
+            height: 1.8rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-weight: bold;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .task-item.completed .task-check {
+            background: linear-gradient(90deg, var(--success-color), #16a34a);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        /* 新增：任务管理表单 */
+        .task-form {
+            background: var(--bg-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            display: none;
+        }
+
+        .task-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            background: white;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        /* 庆祝弹窗 */
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+
+        .celebration-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%;
+            width: 400px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .celebration h2 {
+            background: linear-gradient(90deg, var(--success-color), #16a34a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .task-item {
+                padding: 0.8rem;
+                gap: 0.5rem;
+            }
+
+            .task-time {
+                min-width: 4rem;
+                width: 5rem;
+                font-size: 0.9rem;
+            }
+
+            .task-check {
+                width: 1.5rem;
+                height: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>高一寒假每日计划打卡</h1>
+        
+        <!-- 功能切换：打卡/管理任务 -->
+        <div class="func-toggle">
+            <button class="func-btn active" id="btn-check">打卡模式</button>
+            <button class="func-btn" id="btn-manage">管理任务</button>
+        </div>
+
+        <!-- 日期选择器 -->
+        <div class="day-selector">
+            <button class="day-btn active" data-day="周一">周一</button>
+            <button class="day-btn" data-day="周二">周二</button>
+            <button class="day-btn" data-day="周三">周三</button>
+            <button class="day-btn" data-day="周四">周四</button>
+            <button class="day-btn" data-day="周五">周五</button>
+            <button class="day-btn" data-day="周六">周六</button>
+            <button class="day-btn" data-day="周日">周日</button>
+        </div>
+
+        <!-- 任务管理表单 -->
+        <div class="task-form" id="taskForm">
+            <div class="form-group">
+                <label for="taskDay">星期</label>
+                <select id="taskDay">
+                    <option value="周一">周一</option>
+                    <option value="周二">周二</option>
+                    <option value="周三">周三</option>
+                    <option value="周四">周四</option>
+                    <option value="周五">周五</option>
+                    <option value="周六">周六</option>
+                    <option value="周日">周日</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="taskTime">时间段</label>
+                <input type="text" id="taskTime" placeholder="例如：08:30-09:00">
+            </div>
+            <div class="form-group">
+                <label for="taskContent">任务内容</label>
+                <textarea id="taskContent" rows="2" placeholder="输入任务内容"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" id="btn-clear">清空</button>
+                <button class="btn btn-primary" id="btn-save">保存任务</button>
+            </div>
+        </div>
+
+        <!-- 任务列表容器 -->
+        <div id="task-container">
+            <!-- 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 庆祝弹窗 -->
+    <div class="celebration" id="celebration">
+        <div class="celebration-content">
+            <h2>🎉 太棒了！今天的任务全部完成啦！</h2>
+            <p>继续保持，你超棒的！</p>
+            <button class="btn btn-primary" onclick="closeCelebration()">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        // 初始化 Supabase（替换为你的信息）
+        const supabaseUrl = "https://ydvzwsfowkyquqoigrmg.supabase.co";
+        const supabaseAnonKey = "sb_publishable_vJdssfr65laQD2c8PvTSRw_bxbsC3re";
+        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        let currentDay = "周一";
+        let currentMode = "check"; // check:打卡模式，manage:管理模式
+
+        // 页面初始化
+        async function init() {
+            // 绑定事件
+            bindEvents();
+            // 加载任务
+            await loadTasks(currentDay);
+        }
+
+        // 绑定所有事件
+        function bindEvents() {
+            // 功能切换
+            document.getElementById('btn-check').addEventListener('click', () => {
+                currentMode = "check";
+                document.querySelectorAll('.func-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('btn-check').classList.add('active');
+                document.getElementById('taskForm').classList.remove('active');
+                loadTasks(currentDay);
+            });
+
+            document.getElementById('btn-manage').addEventListener('click', () => {
+                currentMode = "manage";
+                document.querySelectorAll('.func-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById('btn-manage').classList.add('active');
+                document.getElementById('taskForm').classList.add('active');
+                loadTasks(currentDay);
+            });
+
+            // 日期选择
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentDay = btn.dataset.day;
+                    await loadTasks(currentDay);
+                });
+            });
+
+            // 任务表单事件
+            document.getElementById('btn-save').addEventListener('click', saveTask);
+            document.getElementById('btn-clear').addEventListener('click', clearForm);
+        }
+
+        // 加载指定日期的任务
+        async function loadTasks(day) {
+            const container = document.getElementById('task-container');
+            container.innerHTML = '';
+
+            // 从 Supabase 获取任务
+            const { data: tasks, error } = await supabase
+                .from('tasks')
+                .select('*')
+                .eq('day', day)
+                .order('time');
+
+            if (error) {
+                alert('加载任务失败：' + error.message);
+                return;
+            }
+
+            if (tasks.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);">暂无任务，可在管理模式添加</div>`;
+                return;
+            }
+
+            // 按时段分组
+            const sections = {
+                "上午": [],
+                "中午": [],
+                "下午": [],
+                "晚上": []
+            };
+
+            tasks.forEach(task => {
+                const hour = parseInt(task.time.split('-')[0]?.split(':')[0] || 0);
+                if (hour >= 9 && hour < 12) sections["上午"].push(task);
+                else if (hour >= 12 && hour < 14) sections["中午"].push(task);
+                else if (hour >= 14 && hour < 18) sections["下午"].push(task);
+                else sections["晚上"].push(task);
+            });
+
+            // 渲染任务
+            for (const [sectionName, sectionTasks] of Object.entries(sections)) {
+                if (sectionTasks.length === 0) continue;
+
+                const sectionEl = document.createElement('div');
+                sectionEl.className = 'task-section';
+
+                const titleEl = document.createElement('div');
+                titleEl.className = 'section-title';
+                titleEl.textContent = sectionName;
+                sectionEl.appendChild(titleEl);
+
+                const listEl = document.createElement('ul');
+                listEl.className = 'task-list';
+
+                for (const task of sectionTasks) {
+                    // 获取打卡状态
+                    const { data: checkin } = await supabase
+                        .from('checkins')
+                        .select('is_completed')
+                        .eq('task_id', task.id)
+                        .eq('user_id', 'default_user')
+                        .single();
+
+                    const isCompleted = checkin?.is_completed || false;
+
+                    const itemEl = document.createElement('li');
+                    itemEl.className = `task-item ${isCompleted ? 'completed' : ''}`;
+                    itemEl.dataset.taskId = task.id;
+
+                    // 管理模式显示删除按钮
+                    const deleteBtn = currentMode === 'manage' 
+                        ? `<span style="color:#ef4444; cursor:pointer; margin-left:0.5rem;" onclick="deleteTask('${task.id}')">🗑️</span>` 
+                        : '';
+
+                    itemEl.innerHTML = `
+                        <span class="task-time">${task.time}</span>
+                        <span class="task-content">${task.content}${deleteBtn}</span>
+                        <span class="task-check">${isCompleted ? '✓' : ''}</span>
+                    `;
+
+                    // 打卡模式可点击打卡
+                    if (currentMode === 'check') {
+                        itemEl.addEventListener('click', () => toggleCheckin(task.id, itemEl));
+                    }
+
+                    listEl.appendChild(itemEl);
+                }
+
+                sectionEl.appendChild(listEl);
+                container.appendChild(sectionEl);
+            }
+
+            // 检查是否全部完成
+            await checkAllCompleted(day);
+        }
+
+        // 切换打卡状态
+        async function toggleCheckin(taskId, itemEl) {
+            // 获取当前状态
+            const { data: checkin, error } = await supabase
+                .from('checkins')
+                .select('is_completed, id')
+                .eq('task_id', taskId)
+                .eq('user_id', 'default_user')
+                .single();
+
+            const newState = !(checkin?.is_completed || false);
+
+            if (checkin) {
+                // 更新现有记录
+                await supabase
+                    .from('checkins')
+                    .update({ is_completed: newState, updated_at: new Date() })
+                    .eq('id', checkin.id);
+            } else {
+                // 创建新记录
+                await supabase
+                    .from('checkins')
+                    .insert({
+                        task_id: taskId,
+                        user_id: 'default_user',
+                        is_completed: newState
+                    });
+            }
+
+            // 更新UI
+            itemEl.classList.toggle('completed', newState);
+            itemEl.querySelector('.task-check').textContent = newState ? '✓' : '';
+
+            // 检查是否全部完成
+            await checkAllCompleted(currentDay);
+        }
+
+        // 保存新任务
+        async function saveTask() {
+            const day = document.getElementById('taskDay').value;
+            const time = document.getElementById('taskTime').value.trim();
+            const content = document.getElementById('taskContent').value.trim();
+
+            if (!time || !content) {
+                alert('时间段和任务内容不能为空！');
+                return;
+            }
+
+            // 插入数据库
+            const { error } = await supabase
+                .from('tasks')
+                .insert({
+                    day,
+                    time,
+                    content
+                });
+
+            if (error) {
+                alert('保存失败：' + error.message);
+                return;
+            }
+
+            alert('任务保存成功！');
+            clearForm();
+            loadTasks(currentDay);
+        }
+
+        // 删除任务
+        async function deleteTask(taskId) {
+            if (!confirm('确定要删除这个任务吗？')) return;
+
+            const { error } = await supabase
+                .from('tasks')
+                .delete()
+                .eq('id', taskId);
+
+            if (error) {
+                alert('删除失败：' + error.message);
+                return;
+            }
+
+            loadTasks(currentDay);
+        }
+
+        // 清空表单
+        function clearForm() {
+            document.getElementById('taskTime').value = '';
+            document.getElementById('taskContent').value = '';
+        }
+
+        // 检查是否全部完成
+        async function checkAllCompleted(day) {
+            // 获取当天所有任务
+            const { data: tasks } = await supabase
+                .from('tasks')
+                .select('id')
+                .eq('day', day);
+
+            if (!tasks || tasks.length === 0) return;
+
+            // 获取已完成的任务数
+            let completedCount = 0;
+            for (const task of tasks) {
+                const { data: checkin } = await supabase
+                    .from('checkins')
+                    .select('is_completed')
+                    .eq('task_id', task.id)
+                    .eq('user_id', 'default_user')
+                    .single();
+
+                if (checkin?.is_completed) completedCount++;
+            }
+
+            // 全部完成则显示庆祝弹窗
+            if (completedCount === tasks.length && tasks.length > 0) {
+                setTimeout(() => {
+                    document.getElementById('celebration').style.display = 'flex';
+                }, 500);
+            }
+        }
+
+        // 关闭庆祝弹窗
+        function closeCelebration() {
+            document.getElementById('celebration').style.display = 'none';
+        }
+
+        // 页面加载完成后初始化
+        window.onload = init;
+    </script>
+</body>
+</html>
