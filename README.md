@@ -9,7 +9,7 @@
 - ✅ 删除任务
 - ✅ 恢复已完成任务
 - 📱 移动端响应式设计
-- ☁️ 使用Firebase免费数据库存储
+- ☁️ 使用Supabase免费数据库存储
 - 🎉 任务完成时的烟花动画效果
 
 ## 技术栈
@@ -17,7 +17,7 @@
 - HTML5
 - CSS3
 - JavaScript (ES6+)
-- Firebase Realtime Database
+- Supabase Realtime Database
 
 ## 快速开始
 
@@ -28,32 +28,35 @@ git clone https://github.com/your-username/winter-plan.git
 cd winter-plan
 ```
 
-### 2. 配置Firebase
+### 2. 配置Supabase
 
-1. 访问 [Firebase控制台](https://console.firebase.google.com/)
-2. 创建一个新的Firebase项目
-3. 在项目设置中找到"Web应用"部分，添加一个新的Web应用
-4. 复制生成的Firebase配置代码
-5. 打开 `script.js` 文件，将配置代码替换到对应的位置
+1. 访问 [Supabase控制台](https://app.supabase.com/)
+2. 创建一个新的Supabase项目
+3. 在项目设置中找到"API"部分，复制"Project URL"和"Anon Key"
+4. 打开 `script.js` 文件，将这些值替换到对应的位置
 
-### 3. 启用Firebase Realtime Database
+### 3. 创建Supabase数据库表
 
-1. 在Firebase控制台中，导航到"Realtime Database"
-2. 创建一个新的数据库
-3. 在规则标签页中，将规则设置为：
+1. 在Supabase控制台中，导航到"Database" > "Tables"
+2. 点击"New table"创建一个新表
+3. 表名设置为 `tasks`
+4. 添加以下字段：
+   - `id`：类型为 `uuid`，默认值为 `gen_random_uuid()`，设为主键
+   - `text`：类型为 `text`，必填
+   - `completed`：类型为 `boolean`，默认值为 `false`
+   - `created_at`：类型为 `timestamp with time zone`，默认值为 `now()`
+5. 点击"Save"保存表结构
 
-```json
-{
-  "rules": {
-    ".read": true,
-    ".write": true
-  }
-}
-```
+### 4. 设置Supabase访问权限
 
-> ⚠️ 注意：这种规则允许任何人读写数据库，仅用于开发和学习目的。
+1. 在Supabase控制台中，导航到"Authentication" > "Policies"
+2. 为 `tasks` 表添加以下策略：
+   - 允许所有人读取：`CREATE POLICY "Allow public read" ON "public"."tasks" FOR SELECT USING (true)`
+   - 允许所有人写入：`CREATE POLICY "Allow public write" ON "public"."tasks" FOR ALL USING (true)`
 
-### 4. 部署到GitHub Pages
+> ⚠️ 注意：这种权限设置允许任何人读写数据库，仅用于开发和学习目的。
+
+### 5. 部署到GitHub Pages
 
 1. 将项目推送到你的GitHub仓库
 2. 在仓库设置中，导航到"Pages"部分
