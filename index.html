@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>高一寒假每日计划打卡</title>
-    <!-- 引入Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- 修复favicon 404报错 -->
     <link rel="icon" href="data:,">
     <style>
-        /* 基础样式（保留高级UI+移动端适配） */
         * {
             margin: 0;
             padding: 0;
@@ -28,20 +25,9 @@
             --border-color: #e2e8f0;
             --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
             --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
             --radius-sm: 8px;
             --radius-md: 12px;
             --radius-lg: 16px;
-        }
-
-        html {
-            font-size: 16px;
-            @media (max-width: 768px) {
-                font-size: 14px;
-            }
-            @media (max-width: 480px) {
-                font-size: 12px;
-            }
         }
 
         body {
@@ -52,15 +38,12 @@
         }
 
         .container {
-            max-width: 100%;
-            width: 100%;
             max-width: 800px;
             margin: 0 auto;
             background: var(--card-bg);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
             padding: 1.5rem;
-            overflow: hidden;
         }
 
         h1 {
@@ -72,10 +55,8 @@
             font-size: 1.8rem;
             margin-bottom: 1.5rem;
             font-weight: 600;
-            letter-spacing: 0.5px;
         }
 
-        /* 功能切换按钮 */
         .func-toggle {
             display: flex;
             justify-content: center;
@@ -98,20 +79,12 @@
             color: white;
         }
 
-        /* 日期选择器 */
         .day-selector {
             display: flex;
             justify-content: center;
             gap: 0.5rem;
             margin-bottom: 1.5rem;
             flex-wrap: wrap;
-            overflow-x: auto;
-            padding-bottom: 0.5rem;
-            scrollbar-width: none;
-        }
-
-        .day-selector::-webkit-scrollbar {
-            display: none;
         }
 
         .day-btn {
@@ -122,115 +95,19 @@
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 1rem;
-            font-weight: 500;
-            white-space: nowrap;
-            box-shadow: var(--shadow-sm);
         }
 
         .day-btn.active {
             background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
             color: white;
-            box-shadow: var(--shadow-md);
             transform: translateY(-2px);
         }
 
-        /* 任务板块 */
-        .task-section {
-            margin-bottom: 1.5rem;
-            background: var(--bg-color);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e8f0fe;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-title::before {
-            content: "";
-            display: inline-block;
-            width: 0.4rem;
-            height: 1.2rem;
-            background: linear-gradient(180deg, var(--primary-color), var(--primary-light));
-            border-radius: 4px;
-            margin-right: 0.5rem;
-        }
-
-        /* 任务列表 */
-        .task-list {
-            list-style: none;
-        }
-
-        .task-item {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            margin-bottom: 0.8rem;
-            background-color: white;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid var(--border-color);
-            gap: 1rem;
-        }
-
-        .task-item.completed {
-            background-color: #f0fdf4;
-            border-color: #bbf7d0;
-            text-decoration: line-through;
-            color: var(--text-secondary);
-        }
-
-        .task-time {
-            min-width: 5rem;
-            width: 6rem;
-            font-weight: 500;
-            color: var(--primary-color);
-            font-size: 0.95rem;
-        }
-
-        .task-content {
-            flex: 1;
-            font-size: 1rem;
-            line-height: 1.4;
-        }
-
-        .task-check {
-            width: 1.8rem;
-            height: 1.8rem;
-            border: 2px solid var(--primary-color);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-color);
-            font-weight: bold;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .task-item.completed .task-check {
-            background: linear-gradient(90deg, var(--success-color), #16a34a);
-            border-color: var(--success-color);
-            color: white;
-        }
-
-        /* 任务管理表单 */
         .task-form {
             background: var(--bg-color);
             border-radius: var(--radius-md);
             padding: 1rem;
             margin-bottom: 1.5rem;
-            box-shadow: var(--shadow-sm);
             display: none;
         }
 
@@ -245,7 +122,6 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var(--text-primary);
             font-weight: 500;
         }
 
@@ -255,7 +131,6 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
             font-size: 1rem;
-            background: white;
         }
 
         .form-actions {
@@ -269,7 +144,6 @@
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all 0.2s ease;
             font-size: 1rem;
         }
 
@@ -283,7 +157,74 @@
             color: var(--text-primary);
         }
 
-        /* 加载提示 */
+        .task-section {
+            margin-bottom: 1.5rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e8f0fe;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            background-color: white;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            gap: 1rem;
+        }
+
+        .task-item.completed {
+            background-color: #f0fdf4;
+            border-color: #bbf7d0;
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .task-time {
+            min-width: 5rem;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .task-content {
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .task-check {
+            width: 1.8rem;
+            height: 1.8rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .task-item.completed .task-check {
+            background: linear-gradient(90deg, var(--success-color), #16a34a);
+            border-color: var(--success-color);
+            color: white;
+            content: '✓';
+        }
+
         .loading {
             text-align: center;
             padding: 2rem;
@@ -295,7 +236,6 @@
             display: block;
         }
 
-        /* 庆祝弹窗 */
         .celebration {
             position: fixed;
             top: 0;
@@ -315,10 +255,9 @@
             padding: 2rem;
             border-radius: var(--radius-lg);
             text-align: center;
-            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pop 0.5s ease;
             max-width: 90%;
             width: 400px;
-            box-shadow: var(--shadow-lg);
         }
 
         @keyframes pop {
@@ -335,27 +274,20 @@
             font-size: 1.5rem;
         }
 
-        /* 移动端适配 */
         @media (max-width: 480px) {
             .container {
                 padding: 1rem;
             }
-
             h1 {
                 font-size: 1.5rem;
             }
-
             .task-item {
                 padding: 0.8rem;
                 gap: 0.5rem;
             }
-
             .task-time {
                 min-width: 4rem;
-                width: 5rem;
-                font-size: 0.9rem;
             }
-
             .task-check {
                 width: 1.5rem;
                 height: 1.5rem;
@@ -367,13 +299,11 @@
     <div class="container">
         <h1>高一寒假每日计划打卡</h1>
         
-        <!-- 功能切换：打卡/管理任务 -->
         <div class="func-toggle">
             <button class="func-btn active" id="btn-check">打卡模式</button>
             <button class="func-btn" id="btn-manage">管理任务</button>
         </div>
 
-        <!-- 日期选择器 -->
         <div class="day-selector">
             <button class="day-btn active" data-day="周一">周一</button>
             <button class="day-btn" data-day="周二">周二</button>
@@ -384,7 +314,6 @@
             <button class="day-btn" data-day="周日">周日</button>
         </div>
 
-        <!-- 任务管理表单 -->
         <div class="task-form" id="taskForm">
             <div class="form-group">
                 <label for="taskDay">星期</label>
@@ -412,18 +341,10 @@
             </div>
         </div>
 
-        <!-- 加载提示 -->
-        <div class="loading active" id="loading">
-            加载中...
-        </div>
-
-        <!-- 任务列表容器 -->
-        <div id="task-container">
-            <!-- 动态生成 -->
-        </div>
+        <div class="loading active" id="loading">加载中...</div>
+        <div id="task-container"></div>
     </div>
 
-    <!-- 庆祝弹窗 -->
     <div class="celebration" id="celebration">
         <div class="celebration-content">
             <h2>🎉 太棒了！今天的任务全部完成啦！</h2>
@@ -433,87 +354,80 @@
     </div>
 
     <script>
-        // ==================== 核心修复：只定义一次Supabase ====================
-        // 替换为你的Supabase信息（必填！）
-        const supabaseUrl = "https://ydvzwsfowkyquqoigrmg.supabase.co;
-        const supabaseAnonKey = "sb_publishable_vJdssfr65laQD2c8PvTSRw_bxbsC3re";
-        // 只初始化一次Supabase客户端
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        // ========== 唯一的Supabase初始化（仅这1处！） ==========
+        const supabaseConfig = {
+            url: "https://ydvzwsfowkyquqoigrmg.supabase.co", // 替换成你的Project URL
+            key: "sb_publishable_vJdssfr65laQD2c8PvTSRw_bxbsC3re" // 替换成你的anon public密钥
+        };
+        
+        // 全局唯一的Supabase客户端（无重复声明）
+        let supabaseClient;
+        try {
+            supabaseClient = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
+        } catch (e) {
+            alert("Supabase初始化失败：" + e.message);
+        }
 
         let currentDay = "周一";
-        let currentMode = "check"; // check:打卡模式，manage:管理模式
+        let currentMode = "check";
 
         // 页面初始化
-        async function init() {
-            try {
-                // 绑定所有事件（优先绑定，确保交互可用）
-                bindEvents();
-                // 加载任务
-                await loadTasks(currentDay);
-            } catch (error) {
-                console.error("初始化失败：", error);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('task-container').innerHTML = `
-                    <div style="text-align:center; padding:2rem; color:#ef4444;">
-                        加载失败，请检查Supabase配置或网络<br>
-                        错误信息：${error.message || '未知错误'}
-                    </div>
-                `;
-            }
-        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            bindEvents();
+            await loadTasks(currentDay);
+        });
 
-        // 绑定所有事件（确保优先执行，交互不阻塞）
+        // 绑定所有交互事件
         function bindEvents() {
             // 功能切换
-            document.getElementById('btn-check').addEventListener('click', async () => {
+            document.getElementById('btn-check').onclick = async () => {
                 currentMode = "check";
-                document.querySelectorAll('.func-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById('btn-check').classList.add('active');
+                toggleActive('.func-btn', 'btn-check');
                 document.getElementById('taskForm').classList.remove('active');
-                // 显示加载，避免卡顿
-                document.getElementById('loading').classList.add('active');
                 await loadTasks(currentDay);
-                document.getElementById('loading').classList.remove('active');
-            });
+            };
 
-            document.getElementById('btn-manage').addEventListener('click', async () => {
+            document.getElementById('btn-manage').onclick = async () => {
                 currentMode = "manage";
-                document.querySelectorAll('.func-btn').forEach(btn => btn.classList.remove('active'));
-                document.getElementById('btn-manage').classList.add('active');
+                toggleActive('.func-btn', 'btn-manage');
                 document.getElementById('taskForm').classList.add('active');
-                // 显示加载
-                document.getElementById('loading').classList.add('active');
                 await loadTasks(currentDay);
-                document.getElementById('loading').classList.remove('active');
-            });
+            };
 
-            // 日期选择（添加防重复点击）
+            // 日期选择
             document.querySelectorAll('.day-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    if (btn.classList.contains('active')) return;
-                    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
+                btn.onclick = async () => {
                     currentDay = btn.dataset.day;
-                    // 显示加载
-                    document.getElementById('loading').classList.add('active');
+                    toggleActive('.day-btn', btn.dataset.day);
                     await loadTasks(currentDay);
-                    document.getElementById('loading').classList.remove('active');
-                });
+                };
             });
 
-            // 任务表单事件
-            document.getElementById('btn-save').addEventListener('click', saveTask);
-            document.getElementById('btn-clear').addEventListener('click', clearForm);
+            // 表单操作
+            document.getElementById('btn-save').onclick = saveTask;
+            document.getElementById('btn-clear').onclick = clearForm;
         }
 
-        // 加载指定日期的任务（添加错误处理）
+        // 通用激活状态切换
+        function toggleActive(selector, activeId) {
+            document.querySelectorAll(selector).forEach(el => {
+                el.classList.remove('active');
+                if (el.id === activeId || el.dataset.day === activeId) {
+                    el.classList.add('active');
+                }
+            });
+        }
+
+        // 加载任务
         async function loadTasks(day) {
             const container = document.getElementById('task-container');
+            const loading = document.getElementById('loading');
+            loading.classList.add('active');
             container.innerHTML = '';
 
             try {
                 // 从Supabase获取任务
-                const { data: tasks, error } = await supabase
+                const { data: tasks, error } = await supabaseClient
                     .from('tasks')
                     .select('*')
                     .eq('day', day)
@@ -522,18 +436,12 @@
                 if (error) throw error;
 
                 if (tasks.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);">暂无任务，可在管理模式添加</div>`;
+                    container.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);">暂无任务，可在管理模式添加</div>';
                     return;
                 }
 
-                // 按时段分组
-                const sections = {
-                    "上午": [],
-                    "中午": [],
-                    "下午": [],
-                    "晚上": []
-                };
-
+                // 分组渲染
+                const sections = { "上午": [], "中午": [], "下午": [], "晚上": [] };
                 tasks.forEach(task => {
                     const hour = parseInt(task.time.split('-')[0]?.split(':')[0] || 0);
                     if (hour >= 9 && hour < 12) sections["上午"].push(task);
@@ -542,123 +450,66 @@
                     else sections["晚上"].push(task);
                 });
 
-                // 渲染任务
-                for (const [sectionName, sectionTasks] of Object.entries(sections)) {
-                    if (sectionTasks.length === 0) continue;
-
-                    const sectionEl = document.createElement('div');
-                    sectionEl.className = 'task-section';
-
-                    const titleEl = document.createElement('div');
-                    titleEl.className = 'section-title';
-                    titleEl.textContent = sectionName;
-                    sectionEl.appendChild(titleEl);
-
-                    const listEl = document.createElement('ul');
-                    listEl.className = 'task-list';
-
-                    for (const task of sectionTasks) {
+                // 生成任务HTML
+                let html = '';
+                Object.entries(sections).forEach(([sectionName, tasks]) => {
+                    if (tasks.length === 0) return;
+                    html += `<div class="task-section"><div class="section-title">${sectionName}</div><ul class="task-list">`;
+                    tasks.forEach(async task => {
                         // 获取打卡状态
-                        const { data: checkin } = await supabase
+                        const { data: checkin } = await supabaseClient
                             .from('checkins')
-                            .select('is_completed, id')
+                            .select('is_completed')
                             .eq('task_id', task.id)
                             .eq('user_id', 'default_user')
                             .single();
-
                         const isCompleted = checkin?.is_completed || false;
-
-                        const itemEl = document.createElement('li');
-                        itemEl.className = `task-item ${isCompleted ? 'completed' : ''}`;
-                        itemEl.dataset.taskId = task.id;
-
-                        // 管理模式显示删除按钮
-                        const deleteBtn = currentMode === 'manage' 
-                            ? `<span style="color:#ef4444; cursor:pointer; margin-left:0.5rem;" onclick="deleteTask('${task.id}')">🗑️</span>` 
-                            : '';
-
-                        itemEl.innerHTML = `
-                            <span class="task-time">${task.time}</span>
-                            <span class="task-content">${task.content}${deleteBtn}</span>
-                            <span class="task-check">${isCompleted ? '✓' : ''}</span>
+                        const deleteBtn = currentMode === 'manage' ? `<span style="color:#ef4444; cursor:pointer;" onclick="deleteTask('${task.id}')">🗑️</span>` : '';
+                        
+                        html += `
+                            <li class="task-item ${isCompleted ? 'completed' : ''}" onclick="toggleCheckin('${task.id}', this)">
+                                <span class="task-time">${task.time}</span>
+                                <span class="task-content">${task.content}${deleteBtn}</span>
+                                <span class="task-check">${isCompleted ? '✓' : ''}</span>
+                            </li>
                         `;
-
-                        // 打卡模式可点击打卡
-                        if (currentMode === 'check') {
-                            itemEl.addEventListener('click', () => toggleCheckin(task.id, itemEl));
-                        }
-
-                        listEl.appendChild(itemEl);
-                    }
-
-                    sectionEl.appendChild(listEl);
-                    container.appendChild(sectionEl);
-                }
-
-                // 检查是否全部完成
-                await checkAllCompleted(day);
+                    });
+                    html += `</ul></div>`;
+                });
+                container.innerHTML = html;
             } catch (error) {
-                console.error("加载任务失败：", error);
-                container.innerHTML = `
-                    <div style="text-align:center; padding:2rem; color:#ef4444;">
-                        加载任务失败<br>
-                        请检查Supabase配置和表权限
-                    </div>
-                `;
+                container.innerHTML = `<div style="text-align:center; padding:2rem; color:#ef4444;">加载失败：${error.message}</div>`;
             } finally {
-                // 隐藏加载提示
-                document.getElementById('loading').classList.remove('active');
+                loading.classList.remove('active');
             }
         }
 
-        // 切换打卡状态（添加防抖）
-        let isToggling = false;
-        async function toggleCheckin(taskId, itemEl) {
-            if (isToggling) return;
-            isToggling = true;
-
+        // 打卡切换
+        async function toggleCheckin(taskId, el) {
             try {
-                // 获取当前状态
-                const { data: checkin } = await supabase
+                const { data: checkin } = await supabaseClient
                     .from('checkins')
-                    .select('is_completed, id')
+                    .select('id, is_completed')
                     .eq('task_id', taskId)
                     .eq('user_id', 'default_user')
                     .single();
 
                 const newState = !(checkin?.is_completed || false);
-
                 if (checkin) {
-                    // 更新现有记录
-                    await supabase
-                        .from('checkins')
-                        .update({ is_completed: newState, updated_at: new Date() })
-                        .eq('id', checkin.id);
+                    await supabaseClient.from('checkins').update({ is_completed: newState }).eq('id', checkin.id);
                 } else {
-                    // 创建新记录
-                    await supabase
-                        .from('checkins')
-                        .insert({
-                            task_id: taskId,
-                            user_id: 'default_user',
-                            is_completed: newState
-                        });
+                    await supabaseClient.from('checkins').insert({ task_id: taskId, user_id: 'default_user', is_completed: newState });
                 }
 
-                // 更新UI
-                itemEl.classList.toggle('completed', newState);
-                itemEl.querySelector('.task-check').textContent = newState ? '✓' : '';
-
-                // 检查是否全部完成
+                el.classList.toggle('completed', newState);
+                el.querySelector('.task-check').textContent = newState ? '✓' : '';
                 await checkAllCompleted(currentDay);
             } catch (error) {
                 alert('打卡失败：' + error.message);
-            } finally {
-                isToggling = false;
             }
         }
 
-        // 保存新任务
+        // 保存任务
         async function saveTask() {
             const day = document.getElementById('taskDay').value;
             const time = document.getElementById('taskTime').value.trim();
@@ -670,23 +521,11 @@
             }
 
             try {
-                // 插入数据库
-                const { error } = await supabase
-                    .from('tasks')
-                    .insert({
-                        day,
-                        time,
-                        content
-                    });
-
+                const { error } = await supabaseClient.from('tasks').insert({ day, time, content });
                 if (error) throw error;
-
                 alert('任务保存成功！');
                 clearForm();
-                // 重新加载任务
-                document.getElementById('loading').classList.add('active');
                 await loadTasks(currentDay);
-                document.getElementById('loading').classList.remove('active');
             } catch (error) {
                 alert('保存失败：' + error.message);
             }
@@ -694,20 +533,11 @@
 
         // 删除任务
         async function deleteTask(taskId) {
-            if (!confirm('确定要删除这个任务吗？')) return;
-
+            if (!confirm('确定删除该任务吗？')) return;
             try {
-                const { error } = await supabase
-                    .from('tasks')
-                    .delete()
-                    .eq('id', taskId);
-
+                const { error } = await supabaseClient.from('tasks').delete().eq('id', taskId);
                 if (error) throw error;
-
-                // 重新加载任务
-                document.getElementById('loading').classList.add('active');
                 await loadTasks(currentDay);
-                document.getElementById('loading').classList.remove('active');
             } catch (error) {
                 alert('删除失败：' + error.message);
             }
@@ -719,38 +549,19 @@
             document.getElementById('taskContent').value = '';
         }
 
-        // 检查是否全部完成
+        // 检查全部完成
         async function checkAllCompleted(day) {
-            try {
-                // 获取当天所有任务
-                const { data: tasks } = await supabase
-                    .from('tasks')
-                    .select('id')
-                    .eq('day', day);
+            const { data: tasks } = await supabaseClient.from('tasks').select('id').eq('day', day);
+            if (!tasks || tasks.length === 0) return;
 
-                if (!tasks || tasks.length === 0) return;
+            let completed = 0;
+            for (const task of tasks) {
+                const { data: checkin } = await supabaseClient.from('checkins').select('is_completed').eq('task_id', task.id).eq('user_id', 'default_user').single();
+                if (checkin?.is_completed) completed++;
+            }
 
-                // 获取已完成的任务数
-                let completedCount = 0;
-                for (const task of tasks) {
-                    const { data: checkin } = await supabase
-                        .from('checkins')
-                        .select('is_completed')
-                        .eq('task_id', task.id)
-                        .eq('user_id', 'default_user')
-                        .single();
-
-                    if (checkin?.is_completed) completedCount++;
-                }
-
-                // 全部完成则显示庆祝弹窗
-                if (completedCount === tasks.length && tasks.length > 0) {
-                    setTimeout(() => {
-                        document.getElementById('celebration').style.display = 'flex';
-                    }, 500);
-                }
-            } catch (error) {
-                console.error("检查完成状态失败：", error);
+            if (completed === tasks.length) {
+                document.getElementById('celebration').style.display = 'flex';
             }
         }
 
@@ -758,9 +569,6 @@
         function closeCelebration() {
             document.getElementById('celebration').style.display = 'none';
         }
-
-        // 页面加载完成后初始化（确保DOM加载完毕）
-        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
