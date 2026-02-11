@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寒假计划安排</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>寒假计划安排</h1>
+            <p class="subtitle">让这个寒假变得充实而有意义</p>
+        </header>
+        
+        <main>
+            <section class="add-task">
+                <input type="text" id="taskInput" placeholder="输入任务内容...">
+                <button id="addTaskBtn">添加任务</button>
+            </section>
+            
+            <section class="task-list">
+                <h2>待完成任务</h2>
+                <ul id="pendingTasks"></ul>
+            </section>
+            
+            <section class="task-list completed">
+                <h2>已完成任务</h2>
+                <ul id="completedTasks"></ul>
+            </section>
+        </main>
+        
+        <footer>
+            <p>© 2026 寒假计划安排</p>
+        </footer>
+    </div>
+    
+    <canvas id="fireworks"></canvas>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    <script src="fireworks.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
