@@ -110,69 +110,139 @@
             key: "sb_publishable_vJdssfr65laQD2c8PvTSRw_bxbsC3re" // 例：eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         };
 
-        // ========== 本地模拟Supabase核心功能（无CDN依赖） ==========
+        // ========== 修复版简易Supabase客户端（支持链式调用） ==========
         class SimpleSupabase {
             constructor(url, key) {
-                this.url = url + '/rest/v1';
+                this.baseUrl = `${url}/rest/v1`;
                 this.headers = {
                     'apikey': key,
                     'Authorization': `Bearer ${key}`,
                     'Content-Type': 'application/json',
                     'Prefer': 'return=representation'
                 };
+                // 存储链式调用的参数
+                this.queryParams = {
+                    table: '',
+                    filters: [],
+                    fields: '*'
+                };
             }
 
-            // 查询数据
-            async from(table) {
-                return {
-                    select: async (fields) => {
-                        const res = await fetch(`${this.url}/${table}?${new URLSearchParams({ select: fields })}`, {
-                            headers: this.headers
-                        });
-                        if (!res.ok) throw new Error(await res.text());
-                        return { data: await res.json() };
-                    },
-                    eq: async (col, val) => {
-                        const res = await fetch(`${this.url}/${table}?${new URLSearchParams({ [col]: val, select: '*' })}`, {
-                            headers: this.headers
-                        });
-                        if (!res.ok) throw new Error(await res.text());
-                        return { data: await res.json() };
-                    },
-                    insert: async (data) => {
-                        const res = await fetch(`${this.url}/${table}`, {
-                            method: 'POST',
-                            headers: this.headers,
-                            body: JSON.stringify(data)
-                        });
-                        if (!res.ok) throw new Error(await res.text());
-                        return { data: await res.json() };
-                    },
-                    update: async (data) => {
-                        return {
-                            eq: async (col, val) => {
-                                const res = await fetch(`${this.url}/${table}?${new URLSearchParams({ [col]: val })}`, {
-                                    method: 'PATCH',
-                                    headers: this.headers,
-                                    body: JSON.stringify(data)
-                                });
-                                if (!res.ok) throw new Error(await res.text());
-                                return { data: await res.json() };
-                            }
-                        };
-                    },
-                    delete: async () => {
-                        return {
-                            eq: async (col, val) => {
-                                const res = await fetch(`${this.url}/${table}?${new URLSearchParams({ [col]: val })}`, {
-                                    method: 'DELETE',
-                                    headers: this.headers
-                                });
-                                if (!res.ok) throw new Error(await res.text());
-                                return { data: await res.json() };
-                            }
-                        };
-                    }
+            // 选择表
+            from(table) {
+                this.queryParams.table = table;
+                this.queryParams.filters = []; // 重置过滤器
+                return this; // 返回自身，支持链式调用
+            }
+
+            // 选择字段
+            select(fields = '*') {
+                this.queryParams.fields = fields;
+                return this;
+            }
+
+            // 等于过滤器
+            eq(column, value) {
+                this.queryParams.filters.push(`${column}=eq.${encodeURIComponent(value)}`);
+                return this;
+            }
+
+            // 排序
+            order(column) {
+                this.queryParams.filters.push(`order=${column}.asc`);
+                return this;
+            }
+
+            // 执行查询（最终调用）
+            async execute() {
+                const { table, fields, filters } = this.queryParams;
+                if (!table) throw new Error('请先调用from()指定表名');
+                
+                // 拼接查询参数
+                let queryString = `select=${fields}`;
+                if (filters.length > 0) {
+                    queryString += `&${filters.join('&')}`;
+                }
+
+                const response = await fetch(`${this.baseUrl}/${table}?${queryString}`, {
+                    method: 'GET',
+                    headers: this.headers
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`查询失败：${errorText}`);
+                }
+
+                return { data: await response.json(), error: null };
+            }
+
+            // 插入数据
+            async insert(data) {
+                const { table } = this.queryParams;
+                if (!table) throw new Error('请先调用from()指定表名');
+
+                const response = await fetch(`${this.baseUrl}/${table}`, {
+                    method: 'POST',
+                    headers: this.headers,
+                    body: JSON.stringify(Array.isArray(data) ? data : [data])
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`插入失败：${errorText}`);
+                }
+
+                return { data: await response.json(), error: null };
+            }
+
+            // 更新数据
+            async update(data) {
+                const { table, filters } = this.queryParams;
+                if (!table) throw new Error('请先调用from()指定表名');
+                if (filters.length === 0) throw new Error('更新需要先调用eq()指定条件');
+
+                const queryString = filters.join('&');
+                const response = await fetch(`${this.baseUrl}/${table}?${queryString}`, {
+                    method: 'PATCH',
+                    headers: this.headers,
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`更新失败：${errorText}`);
+                }
+
+                return { data: await response.json(), error: null };
+            }
+
+            // 删除数据
+            async delete() {
+                const { table, filters } = this.queryParams;
+                if (!table) throw new Error('请先调用from()指定表名');
+                if (filters.length === 0) throw new Error('删除需要先调用eq()指定条件');
+
+                const queryString = filters.join('&');
+                const response = await fetch(`${this.baseUrl}/${table}?${queryString}`, {
+                    method: 'DELETE',
+                    headers: this.headers
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`删除失败：${errorText}`);
+                }
+
+                return { data: [], error: null };
+            }
+
+            // 获取单条数据（简化封装）
+            async single() {
+                const result = await this.execute();
+                return { 
+                    data: result.data.length > 0 ? result.data[0] : null,
+                    error: result.error
                 };
             }
         }
@@ -184,8 +254,8 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', async () => {
-            // 初始化简易版Supabase（无CDN）
             try {
+                // 初始化修复版Supabase客户端
                 supabase = new SimpleSupabase(CONFIG.url, CONFIG.key);
             } catch (e) {
                 alert("初始化失败：" + e.message);
@@ -251,8 +321,15 @@
             container.innerHTML = '';
 
             try {
-                // 查询当天任务
-                const { data: tasks } = await supabase.from('tasks').eq('day', day);
+                // 正确的链式调用：from → eq → order → execute
+                const { data: tasks, error } = await supabase
+                    .from('tasks')
+                    .eq('day', day)
+                    .order('time')
+                    .execute();
+
+                if (error) throw error;
+
                 if (!tasks || tasks.length === 0) {
                     container.innerHTML = '<div style="text-align:center; padding:2rem; color:#666;">暂无任务，可在管理模式添加</div>';
                     loading.classList.remove('active');
@@ -275,10 +352,16 @@
                     if (list.length === 0) continue;
                     html += `<div class="task-section"><div class="section-title">${title}</div><ul>`;
                     for (const task of list) {
-                        // 查询打卡状态
-                        const { data: checkins } = await supabase.from('checkins').eq('task_id', task.id);
-                        const isCompleted = checkins && checkins.length > 0 ? checkins[0].is_completed : false;
-                        const deleteBtn = currentMode === 'manage' ? `<span style="color:#f44336; cursor:pointer;" onclick="deleteTask('${task.id}')">🗑️</span>` : '';
+                        // 查询打卡状态（链式调用+single）
+                        const { data: checkin } = await supabase
+                            .from('checkins')
+                            .eq('task_id', task.id)
+                            .eq('user_id', 'default_user')
+                            .single();
+                        
+                        const isCompleted = checkin ? checkin.is_completed : false;
+                        const deleteBtn = currentMode === 'manage' ? 
+                            `<span style="color:#f44336; cursor:pointer;" onclick="deleteTask('${task.id}')">🗑️</span>` : '';
                         
                         html += `<li class="task-item ${isCompleted ? 'completed' : ''}" onclick="toggleCheck('${task.id}', this)">
                             <span class="task-time">${task.time}</span>
@@ -300,19 +383,35 @@
         // 切换打卡状态
         async function toggleCheck(taskId, el) {
             try {
-                const { data: checkins } = await supabase.from('checkins').eq('task_id', taskId);
-                const isCompleted = el.classList.contains('completed');
-                
-                if (checkins && checkins.length > 0) {
-                    // 更新打卡状态
-                    await supabase.from('checkins').update({ is_completed: !isCompleted }).eq('id', checkins[0].id);
+                // 查询当前打卡状态
+                const { data: checkin } = await supabase
+                    .from('checkins')
+                    .eq('task_id', taskId)
+                    .eq('user_id', 'default_user')
+                    .single();
+
+                const newState = !el.classList.contains('completed');
+
+                if (checkin) {
+                    // 更新打卡状态（链式调用+update）
+                    await supabase
+                        .from('checkins')
+                        .eq('id', checkin.id)
+                        .update({ is_completed: newState });
                 } else {
                     // 新增打卡记录
-                    await supabase.from('checkins').insert({ task_id: taskId, user_id: 'default_user', is_completed: true });
+                    await supabase
+                        .from('checkins')
+                        .insert({ 
+                            task_id: taskId, 
+                            user_id: 'default_user', 
+                            is_completed: newState 
+                        });
                 }
 
-                el.classList.toggle('completed');
-                el.querySelector('.task-check').textContent = el.classList.contains('completed') ? '✓' : '';
+                // 更新UI
+                el.classList.toggle('completed', newState);
+                el.querySelector('.task-check').textContent = newState ? '✓' : '';
                 checkAllCompleted(currentDay);
             } catch (e) {
                 alert('打卡失败：' + e.message);
@@ -331,7 +430,11 @@
             }
 
             try {
-                await supabase.from('tasks').insert({ day, time, content });
+                // 插入新任务
+                await supabase
+                    .from('tasks')
+                    .insert({ day, time, content });
+                
                 alert('保存成功！');
                 document.getElementById('taskTime').value = '';
                 document.getElementById('taskContent').value = '';
@@ -343,10 +446,20 @@
 
         // 删除任务
         async function deleteTask(taskId) {
-            if (!confirm('确定删除？')) return;
+            if (!confirm('确定删除该任务吗？')) return;
             try {
-                await supabase.from('checkins').delete().eq('task_id', taskId);
-                await supabase.from('tasks').delete().eq('id', taskId);
+                // 先删除关联的打卡记录
+                await supabase
+                    .from('checkins')
+                    .eq('task_id', taskId)
+                    .delete();
+                
+                // 再删除任务
+                await supabase
+                    .from('tasks')
+                    .eq('id', taskId)
+                    .delete();
+                
                 loadTasks(currentDay);
             } catch (e) {
                 alert('删除失败：' + e.message);
@@ -355,13 +468,22 @@
 
         // 检查全部完成
         async function checkAllCompleted(day) {
-            const { data: tasks } = await supabase.from('tasks').eq('day', day);
+            const { data: tasks } = await supabase
+                .from('tasks')
+                .eq('day', day)
+                .execute();
+            
             if (!tasks || tasks.length === 0) return;
 
             let completed = 0;
             for (const task of tasks) {
-                const { data: checkins } = await supabase.from('checkins').eq('task_id', task.id);
-                if (checkins && checkins.length > 0 && checkins[0].is_completed) completed++;
+                const { data: checkin } = await supabase
+                    .from('checkins')
+                    .eq('task_id', task.id)
+                    .eq('user_id', 'default_user')
+                    .single();
+                
+                if (checkin && checkin.is_completed) completed++;
             }
 
             if (completed === tasks.length) {
