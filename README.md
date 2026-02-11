@@ -37,6 +37,30 @@ cd winter-plan
 
 ### 3. 创建Supabase数据库表
 
+**方法一：使用SQL语句（推荐）**
+
+1. 在Supabase控制台中，导航到"SQL Editor"
+2. 复制粘贴以下SQL代码并运行：
+
+```sql
+-- 创建tasks表
+CREATE TABLE IF NOT EXISTS public.tasks (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    text text NOT NULL,
+    completed boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+-- 启用行级安全策略
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+
+-- 创建访问策略
+CREATE POLICY "Allow public read" ON public.tasks FOR SELECT USING (true);
+CREATE POLICY "Allow public write" ON public.tasks FOR ALL USING (true);
+```
+
+**方法二：使用可视化界面**
+
 1. 在Supabase控制台中，导航到"Database" > "Tables"
 2. 点击"New table"创建一个新表
 3. 表名设置为 `tasks`
@@ -47,14 +71,7 @@ cd winter-plan
    - `created_at`：类型为 `timestamp with time zone`，默认值为 `now()`
 5. 点击"Save"保存表结构
 
-### 4. 设置Supabase访问权限
-
-1. 在Supabase控制台中，导航到"Authentication" > "Policies"
-2. 为 `tasks` 表添加以下策略：
-   - 允许所有人读取：`CREATE POLICY "Allow public read" ON "public"."tasks" FOR SELECT USING (true)`
-   - 允许所有人写入：`CREATE POLICY "Allow public write" ON "public"."tasks" FOR ALL USING (true)`
-
-> ⚠️ 注意：这种权限设置允许任何人读写数据库，仅用于开发和学习目的。
+> ⚠️ 注意：SQL语句中已经包含了访问权限设置，允许任何人读写数据库，仅用于开发和学习目的。
 
 ### 5. 部署到GitHub Pages
 
